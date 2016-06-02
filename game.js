@@ -32,6 +32,12 @@ var heart1;
 var heart2;
 var heart3;
 var heartCount = 3;
+var isHit = false;
+
+//Game Over Screen elements
+var gameOverScreen;
+var gO_Count = 0;
+var gO_boolean = false;
 
 //Collision detection code
 isIntersecting = function(r1, r2) {
@@ -48,17 +54,18 @@ function adjustCamera(){
 window.addEventListener("keydown", function (e) {
   e.preventDefault();
 
-  	if (e.keyCode == 65){//This is the A key
-  		player.vx = -4;
-  	}
-	else if (e.keyCode == 68){//This is the D key
-		player.vx = 4;
+  	if (gO_boolean == false){
+  		if (e.keyCode == 65){//This is the A key
+  			player.vx = -4;
+  		}
+		else if (e.keyCode == 68){//This is the D key
+			player.vx = 4;
+		}
+		else if (e.keyCode == 32){//This is the SPACE key
+			jump();
+		}	
+		console.log(e.keyCode);
 	}
-	else if (e.keyCode == 32){//This is the SPACE key
-		jump();
-	}	
-	console.log(e.keyCode);
-	
 });
 
 window.addEventListener("keyup", function (e) {
@@ -98,8 +105,11 @@ function move(){
 
 function checkDamage(){
 	if (isIntersecting(player, enemy)){
-
-		player.x = player.x - 100;
+		player.x = player.x - 15;
+		player.y = player.y - 15;
+		var new_x = player.x - 100;
+		var new_y = player.y - 25;
+		createjs.Tween.get(player.position).to({x: new_x, y: new_y}, 100, createjs.Ease.bounceOut);
 		if (heartCount == 3){
 			heart3.alpha = 0;
 		}
@@ -108,12 +118,21 @@ function checkDamage(){
 		}
 		else if (heartCount == 1){
 			heart1.alpha = 0;
+			gO_boolean = true;
+			new_x = player.x - 500;
+			new_y = player.y + 1000;
+			createjs.Tween.get(player.position).to({x: new_x, y: new_y}, 5000);
 		}
 		heartCount--;
-		if (heartCount == 0){
-			//GAME OVER SCREEN
-		}
 	}
+}
+
+function gameOver(){
+	gO_Count++;
+	if (gO_Count > 200){
+		gameOverScreen.alpha = 1;
+	}
+
 }
 checkFalling = function(verticalForce){
 
@@ -135,6 +154,7 @@ checkFalling = function(verticalForce){
 var testmap = "test_level.json";
 
 PIXI.loader
+	.add("gOScreen", "gameover_screen.png")
 	.add("heart", "heart.png")
 	.add("map_json", testmap)
 	.add("tileset", "tileset1.png")
@@ -196,25 +216,37 @@ function ready(){
 	entity_layer.addChild(player);
 	entity_layer.addChild(enemy);
 	stage.addChild(HUD);
-
-
+	
 	text = new PIXI.Text('',{font : '40px Arial', fill : 0x000000, align : 'center'});
-	text.x = 100;
-	text.y = 1800;
+	text.x = 50;
+	text.y = 100;
 	HUD.addChild(text);
+
+	//Game Over Screen initialization
+	gameOverScreen = new PIXI.Sprite(PIXI.loader.resources.gOScreen.texture);
+	gameOverScreen.x = 0;
+	gameOverScreen.y = 0;
+	gameOverScreen.alpha = 0;
+	HUD.addChild(gameOverScreen);
 
 	animate();
 }
 
 var jumpCount = 0;
+var isHitCount = 0;
 function animate() {
 	requestAnimationFrame(animate);
 	renderer.render(stage);
 
-	checkDamage();
-	checkFalling(player.vy);
-	checkCameraBounds();
-	move();
+	if (gO_boolean == false){
+		checkDamage();
+		checkFalling(player.vy);
+		checkCameraBounds();
+		move();
+	}
+	if (gO_boolean == true){
+		gameOver();
+	}
 
 	if (player.vy < 0){//Then the player is jumping
 		if (jumpCount > 40){
@@ -223,4 +255,6 @@ function animate() {
 		}
 		jumpCount++;
 	}
+
+
 }

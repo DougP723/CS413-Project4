@@ -18,6 +18,9 @@ var exit_object;
 var levelExit;
 var world;
 var test;
+var barriers = [];
+var barrier;
+var numBarriers = 1;
 var platforms = []; //This array will store all of the platforms in a level
 var platform;
 var numPlatforms = 2; //This will change depending on the level
@@ -128,6 +131,20 @@ function checkCameraBounds(){
 	}
 }
 
+function checkBarriers(){
+	for (var i in barriers){
+		barrier = barriers[i]
+		if (isIntersecting(player, barrier)){
+			if(player.x > barrier.x){
+				player.x = player.x + 10;
+			}
+			else {
+				player.x = player.x - 10;
+			}
+		}
+	}
+}
+
 function move(){
 	player.y += player.vy;
 	player.x += player.vx;
@@ -172,19 +189,6 @@ function levelSelection(e){
 	HUD.addChild(LMenu_Container);//Add the level selection elements
 }
 
-function levelOneInit(e){
-	numPlatforms = 42;
-	PIXI.loader.reset();
-	HUD.removeChild(LMenu_Container);
-	PIXI.loader
-		.add("heart", "heart.png")
-		.add("map_json", "level_one.json")
-		.add("tileset", "tileset1.png")
-		.add("player", "main_character1.png")
-		.add("enemy", "lightbulb.png")
-		.add("levelexit", "exitdoor.png")
-		.load(levelOne);
-}
 function gameOver(){
 	HUD.addChild(GO_Screen_Containter);
 }
@@ -206,6 +210,22 @@ checkFalling = function(verticalForce){
 			}
 		}
 	}
+}
+
+
+function levelOneInit(e){
+	numBarriers = 39;
+	numPlatforms = 42;
+	PIXI.loader.reset();
+	HUD.removeChild(LMenu_Container);
+	PIXI.loader
+		.add("heart", "heart.png")
+		.add("map_json", "level_one.json")
+		.add("tileset", "tileset1.png")
+		.add("player", "main_character1.png")
+		.add("enemy", "lightbulb.png")
+		.add("levelexit", "exitdoor.png")
+		.load(levelOne);
 }
 
 PIXI.loader
@@ -312,6 +332,11 @@ function levelOne(){
 		platforms.push(world.getObject("ground" + i));
 	}
 
+	//Barrier initialization
+	for (var k = 1; k <= numBarriers; k++){
+		barriers.push(world.getObject("barrier" + k))
+	}
+
 	//Player initialization
 	hero = world.getObject("hero");
 	player = new PIXI.Sprite(PIXI.loader.resources.player.texture);
@@ -384,6 +409,7 @@ function animate() {
 		checkDamage();
 		checkFalling(player.vy);
 		checkCameraBounds();
+		checkBarriers();
 		move();
 
 		if (isIntersecting(player, levelExit)){

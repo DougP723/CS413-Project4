@@ -507,8 +507,8 @@
                  "type":"",
                  "visible":true,
                  "width":60,
-                 "x":300,
-                 "y":2100
+                 "x":247,
+                 "y":1899
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -526,13 +526,25 @@
                  "gid":6,
                  "height":50,
                  "id":51,
-                 "name":"enemy",
+                 "name":"enemy1",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":50,
                  "x":1100,
                  "y":2050
+                }, 
+                {
+                 "gid":6,
+                 "height":50,
+                 "id":99,
+                 "name":"enemy2",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":50,
+                 "x":1151,
+                 "y":2049
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1006,7 +1018,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":99,
+ "nextobjectid":100,
  "orientation":"orthogonal",
  "renderorder":"right-up",
  "tileheight":50,

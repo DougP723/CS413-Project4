@@ -38,6 +38,11 @@ var isHit = false;
 var gameOverScreen;
 var gO_Count = 0;
 var gO_boolean = false;
+var backButton;
+
+//Main Menu Screen elements
+var mainMenu;
+var startButton;
 
 //Collision detection code
 isIntersecting = function(r1, r2) {
@@ -126,11 +131,17 @@ function checkDamage(){
 		heartCount--;
 	}
 }
+function quitToMenu(){
 
+}
+function goToLevelSelect(){
+
+}
 function gameOver(){
 	gO_Count++;
 	if (gO_Count > 200){
 		gameOverScreen.alpha = 1;
+		backButton.alpha = 1;
 	}
 
 }
@@ -154,6 +165,9 @@ checkFalling = function(verticalForce){
 var testmap = "test_level.json";
 
 PIXI.loader
+	.add("mainMenu", "mainmenu.png")
+	.add("startButton", "startbutton.png")
+	.add("backButton", "backbutton.png")
 	.add("gOScreen", "gameover_screen.png")
 	.add("heart", "heart.png")
 	.add("map_json", testmap)
@@ -222,12 +236,35 @@ function ready(){
 	text.y = 100;
 	HUD.addChild(text);
 
+	//Main Menu Screen initialization
+	mainMenu = new PIXI.Sprite(PIXI.loader.resources.mainMenu.texture);
+	mainMenu.x = 0;
+	mainMenu.y = 0;
+	mainMenu.alpha = 1;
+	HUD.addChild(mainMenu);
+
+	startButton = new PIXI.Sprite(PIXI.loader.resources.startButton.texture);
+	startButton.x = 500;
+	startButton.y = 500;
+	startButton.interactive = true;
+	startButton.on('mousedown', goToLevelSelect());
+	HUD.addChild(startButton);
+	
 	//Game Over Screen initialization
 	gameOverScreen = new PIXI.Sprite(PIXI.loader.resources.gOScreen.texture);
 	gameOverScreen.x = 0;
 	gameOverScreen.y = 0;
 	gameOverScreen.alpha = 0;
 	HUD.addChild(gameOverScreen);
+
+	backButton = new PIXI.Sprite(PIXI.loader.resources.backButton.texture);
+	backButton.x = 500;
+	backButton.y = 500;
+	backButton.alpha = 0;
+	backButton.interactive = true;
+	backButton.on('mousedown', quitToMenu());
+	HUD.addChild(backButton);
+
 
 	animate();
 }

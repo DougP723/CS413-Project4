@@ -21,6 +21,17 @@ var numPlatforms = 2; //This will change depending on the level
 var ground;
 var hero;
 var text;
+var enemy_object;
+var enemy;
+
+//HUD elements
+var HUD = new PIXI.Container();
+HUD.x = 100;
+HUD.y = 1700;
+var heart1;
+var heart2;
+var heart3;
+var heartCount = 3;
 
 //Collision detection code
 isIntersecting = function(r1, r2) {
@@ -72,9 +83,11 @@ function jump(){
 function checkCameraBounds(){
 	if (stage.x + player.x > 600){
 		stage.x += -4;
+		HUD.x += 4;
 	}
 	if (stage.x + player.x < 100){
 		stage.x += 4;
+		HUD.x -= 4;
 	}
 }
 
@@ -83,6 +96,25 @@ function move(){
 	player.x += player.vx;
 }
 
+function checkDamage(){
+	if (isIntersecting(player, enemy)){
+
+		player.x = player.x - 100;
+		if (heartCount == 3){
+			heart3.alpha = 0;
+		}
+		else if (heartCount == 2){
+			heart2.alpha = 0;
+		}
+		else if (heartCount == 1){
+			heart1.alpha = 0;
+		}
+		heartCount--;
+		if (heartCount == 0){
+			//GAME OVER SCREEN
+		}
+	}
+}
 checkFalling = function(verticalForce){
 
 	for (var j in platforms){
@@ -100,25 +132,55 @@ checkFalling = function(verticalForce){
 	}
 }
 
+var testmap = "test_level.json";
+
 PIXI.loader
-	.add("map_json", "test_level.json")
+	.add("heart", "heart.png")
+	.add("map_json", testmap)
 	.add("tileset", "tileset1.png")
 	.add("player", "main_character1.png")
+	.add("enemy", "lightbulb.png")
 	.load(ready);
 
 function ready(){
 
+	//World initialization
 	let tu = new TileUtilities(PIXI);
 	let world = tu.makeTiledWorld("map_json", "tileset1.png");
 	stage.addChild(world);
 
+	//Platform initialization
 	for (var i = 1; i <= numPlatforms; i++){
 		platforms.push(world.getObject("ground" + i));
 	}
 
+	//Enemy initialization
+	enemy_object = world.getObject("enemy");
+	enemy = new PIXI.Sprite(PIXI.loader.resources.enemy.texture);
+	enemy.x = enemy_object.x;
+	enemy.x = enemy_object.x;
+	enemy.y = enemy_object.y;
+	enemy.width = 50;
+	enemy.height = 50;
+	enemy.anchor.x = 0.0;
+	enemy.anchor.y = 0.0;
+
+	//HUD initialization
+	heart1 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart1.x = 10;
+	heart1.y = 10;
+	HUD.addChild(heart1);
+	heart2 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart2.x = 60;
+	heart2.y = 10;
+	HUD.addChild(heart2);
+	heart3 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart3.x = 110;
+	heart3.y = 10;
+	HUD.addChild(heart3);
+
+	//Player initialization
 	hero = world.getObject("hero");
-
-
 	player = new PIXI.Sprite(PIXI.loader.resources.player.texture);
 	player.x = hero.x;
 	player.y = hero.y;
@@ -132,11 +194,14 @@ function ready(){
 	ground = platforms[0];
 	var entity_layer = world.getObject("player");
 	entity_layer.addChild(player);
+	entity_layer.addChild(enemy);
+	stage.addChild(HUD);
+
 
 	text = new PIXI.Text('',{font : '40px Arial', fill : 0x000000, align : 'center'});
 	text.x = 100;
-	text.y = 1700;
-	entity_layer.addChild(text);
+	text.y = 1800;
+	HUD.addChild(text);
 
 	animate();
 }
@@ -146,6 +211,7 @@ function animate() {
 	requestAnimationFrame(animate);
 	renderer.render(stage);
 
+	checkDamage();
 	checkFalling(player.vy);
 	checkCameraBounds();
 	move();

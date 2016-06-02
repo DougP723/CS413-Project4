@@ -100,8 +100,32 @@
          "width":80,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "height":48,
+         "name":"exit",
+         "objects":[
+                {
+                 "gid":7,
+                 "height":150,
+                 "id":14,
+                 "name":"levelExit",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":100,
+                 "x":1150,
+                 "y":2099
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "width":80,
+         "x":0,
+         "y":0
         }],
- "nextobjectid":14,
+ "nextobjectid":15,
  "orientation":"orthogonal",
  "renderorder":"right-up",
  "tileheight":50,
@@ -182,6 +206,19 @@
          "tilecount":1,
          "tileheight":25,
          "tilewidth":25
+        }, 
+        {
+         "columns":1,
+         "firstgid":7,
+         "image":"exitdoor.png",
+         "imageheight":150,
+         "imagewidth":100,
+         "margin":0,
+         "name":"exitdoor",
+         "spacing":0,
+         "tilecount":1,
+         "tileheight":150,
+         "tilewidth":100
         }],
  "tilewidth":50,
  "version":1,

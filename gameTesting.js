@@ -5,8 +5,8 @@ var renderer = PIXI.autoDetectRenderer(800, 700, {backgroundColor: 0x3344ee});
 gameport.appendChild(renderer.view);
 
 var stage = new PIXI.Container();
-stage.x = -100;
-stage.y = -1700;
+stage.x = 0;
+stage.y = 0;
 stage.scale.x = game_scale;
 stage.scale.y = game_scale;
 
@@ -14,6 +14,9 @@ var GRAVITY = 10;
 var JUMP = -10;
 
 var player;
+var exit_object;
+var levelExit;
+var world;
 var test;
 var platforms = []; //This array will store all of the platforms in a level
 var platform;
@@ -26,9 +29,10 @@ var enemy;
 
 //HUD elements
 var HUD = new PIXI.Container();
-HUD.x = 100;
-HUD.y = 1700;
+HUD.x = 0;
+HUD.y = 0;
 HUD.interactive = true;
+stage.addChild(HUD);
 var heart1;
 var heart2;
 var heart3;
@@ -37,14 +41,19 @@ var isHit = false;
 
 //Game Over Screen elements
 var gameOverScreen;
+var GO_Screen_Containter = new PIXI.Container();
 var gO_Count = 0;
 var gO_boolean = false;
 var backButton;
 
 //Main Menu Screen elements
 var mainMenu;
+var MMenu_Container = new PIXI.Container();
 var startButton;
+var LMenu_Container = new PIXI.Container();
 var levelMenu;
+var gameStart = false;
+var L1Button;
 
 //Collision detection code
 isIntersecting = function(r1, r2) {
@@ -133,20 +142,35 @@ function checkDamage(){
 		heartCount--;
 	}
 }
-function quitToMenu(e){
-	mainmenu.alpha = 1;
+function quitGame(e){
+	gameStart = false;
+	stage.removeChild(world);
+	HUD.removeChild(GO_Screen_Containter);
+	HUD.addChild(MMenu_Container);
 }
-function goToLevelSelect(e){
-	mainMenu.alpha = 0;
-	startButton.alpha = 0;
+function quitToMenu(e){
+	HUD.removeChild(MMenu_Container);
+	HUD.addChild(MMenu_Container);
+}
+function levelSelection(e){
+	HUD.removeChild(MMenu_Container);//Remove the main menu elements
+	HUD.addChild(LMenu_Container);//Add the level selection elements
+}
+
+function levelOneInit(e){
+	PIXI.loader.reset();
+	HUD.removeChild(LMenu_Container);
+	PIXI.loader
+		.add("heart", "heart.png")
+		.add("map_json", testmap)
+		.add("tileset", "tileset1.png")
+		.add("player", "main_character1.png")
+		.add("enemy", "lightbulb.png")
+		.add("levelexit", "exitdoor.png")
+		.load(levelOne);
 }
 function gameOver(){
-	gO_Count++;
-	if (gO_Count > 200){
-		gameOverScreen.alpha = 1;
-		backButton.alpha = 1;
-	}
-
+	HUD.addChild(GO_Screen_Containter);
 }
 checkFalling = function(verticalForce){
 
@@ -171,51 +195,90 @@ PIXI.loader
 	.add("mainMenu", "mainmenu.png")
 	.add("startButton", "startbutton.png")
 	.add("levelMenu", "levelselectscreen.png")
+	.add("L1_Button", "L1_Button.png")
 	.add("backButton", "backbutton.png")
 	.add("gOScreen", "gameover_screen.png")
-	.add("heart", "heart.png")
-	.add("map_json", testmap)
-	.add("tileset", "tileset1.png")
-	.add("player", "main_character1.png")
-	.add("enemy", "lightbulb.png")
 	.load(ready);
 
 function ready(){
+	
+	text = new PIXI.Text('',{font : '40px Arial', fill : 0x000000, align : 'center'});
+	text.x = 50;
+	text.y = 100;
+	HUD.addChild(text);
+	
+	//Main Menu Screen initialization
+	mainMenu = new PIXI.Sprite(PIXI.loader.resources.mainMenu.texture);
+	mainMenu.x = 0;
+	mainMenu.y = 0;
+	mainMenu.alpha = 1;
+	MMenu_Container.addChild(mainMenu);
+	
+	startButton = new PIXI.Sprite(PIXI.loader.resources.startButton.texture);
+	startButton.x = 300;
+	startButton.y = 500;
+	startButton.alpha = 1;
+	startButton.interactive = true;
+	startButton.on('click', levelSelection);
+	MMenu_Container.addChild(startButton);
 
+	HUD.addChild(MMenu_Container);
+	//Game Over Screen initialization
+	gameOverScreen = new PIXI.Sprite(PIXI.loader.resources.gOScreen.texture);
+	gameOverScreen.x = 0;
+	gameOverScreen.y = 0;
+
+	returnButton = new PIXI.Sprite(PIXI.loader.resources.backButton.texture);
+	returnButton.x = 600;
+	returnButton.y = 50;
+	returnButton.interactive = true;
+	returnButton.on('click', quitGame);
+
+
+	GO_Screen_Containter.addChild(gameOverScreen);
+	GO_Screen_Containter.addChild(returnButton);
+
+	//Level Select Screen initialization
+	levelMenu = new PIXI.Sprite(PIXI.loader.resources.levelMenu.texture);
+	levelMenu.x = 0;
+	levelMenu.y = 0;
+
+	backButton = new PIXI.Sprite(PIXI.loader.resources.backButton.texture);
+	backButton.x = 600;
+	backButton.y = 50;
+	backButton.interactive = true;
+	backButton.on('click', quitToMenu);
+
+	L1Button = new PIXI.Sprite(PIXI.loader.resources.L1_Button.texture);
+	L1Button.x = 100;
+	L1Button.y = 300;
+	L1Button.interactive = true;
+	L1Button.on('click', levelOneInit);
+
+	LMenu_Container.addChild(levelMenu);
+	LMenu_Container.addChild(L1Button);
+	LMenu_Container.addChild(backButton);
+	animate();
+}
+
+function levelOne(){
+
+	//Initialize game parameters
+	heartCount = 3;
+	gO_boolean = false;
+	stage.x = -100;
+	stage.y = -1700;
+	stage.removeChild(HUD);
+	gameStart = true;
 	//World initialization
 	let tu = new TileUtilities(PIXI);
-	let world = tu.makeTiledWorld("map_json", "tileset1.png");
+	world = tu.makeTiledWorld("map_json", "tileset1.png");
 	stage.addChild(world);
 
 	//Platform initialization
 	for (var i = 1; i <= numPlatforms; i++){
 		platforms.push(world.getObject("ground" + i));
 	}
-
-	//Enemy initialization
-	enemy_object = world.getObject("enemy");
-	enemy = new PIXI.Sprite(PIXI.loader.resources.enemy.texture);
-	enemy.x = enemy_object.x;
-	enemy.x = enemy_object.x;
-	enemy.y = enemy_object.y;
-	enemy.width = 50;
-	enemy.height = 50;
-	enemy.anchor.x = 0.0;
-	enemy.anchor.y = 0.0;
-
-	//HUD initialization
-	heart1 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
-	heart1.x = 10;
-	heart1.y = 10;
-	HUD.addChild(heart1);
-	heart2 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
-	heart2.x = 60;
-	heart2.y = 10;
-	HUD.addChild(heart2);
-	heart3 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
-	heart3.x = 110;
-	heart3.y = 10;
-	HUD.addChild(heart3);
 
 	//Player initialization
 	hero = world.getObject("hero");
@@ -229,52 +292,54 @@ function ready(){
 	player.vy = GRAVITY;
 	player.vx = 0;
 
+	//Enemy initialization
+	enemy_object = world.getObject("enemy");
+	enemy = new PIXI.Sprite(PIXI.loader.resources.enemy.texture);
+	enemy.x = enemy_object.x;
+	enemy.y = enemy_object.y;
+	enemy.width = 50;
+	enemy.height = 50;
+	enemy.anchor.x = 0.0;
+	enemy.anchor.y = 0.0;
+
+	//Level Exit initialization
+	exit_object = world.getObject("levelExit");
+	levelExit = new PIXI.Sprite(PIXI.loader.resources.levelexit.texture);
+	levelExit.x = exit_object.x;
+	levelExit.y = exit_object.y;
+	levelExit.width = 100;
+	levelExit.height = 150;
+	levelExit.anchor.x = 0.0;
+	levelExit.anchor.y = 0.0;
+
+	//HUD initialization
+	heart1 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart1.x = 10;
+	heart1.y = 10;
+	heart1.alpha = 1;
+	HUD.addChild(heart1);
+	heart2 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart2.x = 60;
+	heart2.y = 10;
+	heart2.alpha = 1;
+	HUD.addChild(heart2);
+	heart3 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart3.x = 110;
+	heart3.y = 10;
+	heart3.alpha = 1;
+	HUD.addChild(heart3);
+
 	ground = platforms[0];
 	var entity_layer = world.getObject("player");
+	entity_layer.addChild(levelExit);
 	entity_layer.addChild(player);
 	entity_layer.addChild(enemy);
+
+
+	HUD.x = -stage.x;
+	HUD.y = -stage.y;
 	stage.addChild(HUD);
-	
-	text = new PIXI.Text('',{font : '40px Arial', fill : 0x000000, align : 'center'});
-	text.x = 50;
-	text.y = 100;
-	HUD.addChild(text);
-	
-	//Main Menu Screen initialization
-	mainMenu = new PIXI.Sprite(PIXI.loader.resources.mainMenu.texture);
-	mainMenu.x = 0;
-	mainMenu.y = 0;
-	mainMenu.alpha = 0;
-	HUD.addChild(mainMenu);
-	/*
-	startButton = new PIXI.Sprite(PIXI.loader.resources.startButton.texture);
-	startButton.x = 500;
-	startButton.y = 500;
-	startButton.interactive = true;
-	startButton.on('mousedown', goToLevelSelect);
-	HUD.addChild(startButton);
-	*/
-	//Game Over Screen initialization
-	gameOverScreen = new PIXI.Sprite(PIXI.loader.resources.gOScreen.texture);
-	gameOverScreen.x = 0;
-	gameOverScreen.y = 0;
-	gameOverScreen.alpha = 0;
-	HUD.addChild(gameOverScreen);
 
-	backButton = new PIXI.Sprite(PIXI.loader.resources.backButton.texture);
-	backButton.x = 500;
-	backButton.y = 500;
-	backButton.alpha = 0;
-	backButton.interactive = true;
-	backButton.on('mousedown', quitToMenu);
-	HUD.addChild(backButton);
-
-
-	animate();
-}
-
-function loadLevelOne(){
-	
 }
 
 var jumpCount = 0;
@@ -283,23 +348,22 @@ function animate() {
 	requestAnimationFrame(animate);
 	renderer.render(stage);
 
-	if (gO_boolean == false){
+	if (gameStart == true){
 		checkDamage();
 		checkFalling(player.vy);
 		checkCameraBounds();
 		move();
-	}
-	if (gO_boolean == true){
-		gameOver();
-	}
 
-	if (player.vy < 0){//Then the player is jumping
-		if (jumpCount > 40){
-			player.vy = GRAVITY;
-			jumpCount = 0;
+		if (player.vy < 0){//Then the player is jumping
+			if (jumpCount > 40){
+				player.vy = GRAVITY;
+				jumpCount = 0;
+			}
+			jumpCount++;
 		}
-		jumpCount++;
+		if (gO_boolean == true){
+			gameOver();
+		}
 	}
-
 
 }

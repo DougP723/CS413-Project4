@@ -377,7 +377,6 @@ function ready(){
 }
 
 function levelOne(){
-
 	player.removeChild(standingSprite);
 	//Initialize game parameters
 	heartCount = 3;
@@ -458,12 +457,12 @@ function levelOne(){
 	entity_layer.addChild(levelExit);
 	entity_layer.addChild(walkingSprite);
 	entity_layer.addChild(player);
-	entity_layer.addChild(enemy);
+	//entity_layer.addChild(enemy);
 
 
-	//HUD.x = -stage.x;
-	//HUD.y = -stage.y;
-
+	HUD.x = -stage.x;
+	HUD.y = -stage.y;
+	stage.addChild(HUD);
 }
 
 var jumpCount = 0;

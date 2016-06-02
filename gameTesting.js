@@ -46,10 +46,16 @@ var gO_Count = 0;
 var gO_boolean = false;
 var backButton;
 
+//Level Win Screen elements
+var levelWinScreen;
+var LW_Screen_Container = new PIXI.Container();
+
 //Main Menu Screen elements
 var mainMenu;
 var MMenu_Container = new PIXI.Container();
 var startButton;
+
+//Level Select Screen elements
 var LMenu_Container = new PIXI.Container();
 var levelMenu;
 var gameStart = false;
@@ -112,6 +118,14 @@ function checkCameraBounds(){
 		stage.x += 4;
 		HUD.x -= 4;
 	}
+	if (stage.y + player.y < 100){
+		stage.y += 4;
+		HUD.y -= 4;
+	}
+	if (stage.y + player.y > 450){
+		stage.y += -4;
+		HUD.y += 4;
+	}
 }
 
 function move(){
@@ -146,6 +160,7 @@ function quitGame(e){
 	gameStart = false;
 	stage.removeChild(world);
 	HUD.removeChild(GO_Screen_Containter);
+	HUD.removeChild(LW_Screen_Container);
 	HUD.addChild(MMenu_Container);
 }
 function quitToMenu(e){
@@ -158,11 +173,12 @@ function levelSelection(e){
 }
 
 function levelOneInit(e){
+	numPlatforms = 42;
 	PIXI.loader.reset();
 	HUD.removeChild(LMenu_Container);
 	PIXI.loader
 		.add("heart", "heart.png")
-		.add("map_json", testmap)
+		.add("map_json", "level_one.json")
 		.add("tileset", "tileset1.png")
 		.add("player", "main_character1.png")
 		.add("enemy", "lightbulb.png")
@@ -171,6 +187,9 @@ function levelOneInit(e){
 }
 function gameOver(){
 	HUD.addChild(GO_Screen_Containter);
+}
+function levelWin(){
+	HUD.addChild(LW_Screen_Container);
 }
 checkFalling = function(verticalForce){
 
@@ -189,8 +208,6 @@ checkFalling = function(verticalForce){
 	}
 }
 
-var testmap = "test_level.json";
-
 PIXI.loader
 	.add("mainMenu", "mainmenu.png")
 	.add("startButton", "startbutton.png")
@@ -198,6 +215,7 @@ PIXI.loader
 	.add("L1_Button", "L1_Button.png")
 	.add("backButton", "backbutton.png")
 	.add("gOScreen", "gameover_screen.png")
+	.add("levelWin", "levelWinScreen.png")
 	.load(ready);
 
 function ready(){
@@ -221,8 +239,8 @@ function ready(){
 	startButton.interactive = true;
 	startButton.on('click', levelSelection);
 	MMenu_Container.addChild(startButton);
-
 	HUD.addChild(MMenu_Container);
+
 	//Game Over Screen initialization
 	gameOverScreen = new PIXI.Sprite(PIXI.loader.resources.gOScreen.texture);
 	gameOverScreen.x = 0;
@@ -233,7 +251,6 @@ function ready(){
 	returnButton.y = 50;
 	returnButton.interactive = true;
 	returnButton.on('click', quitGame);
-
 
 	GO_Screen_Containter.addChild(gameOverScreen);
 	GO_Screen_Containter.addChild(returnButton);
@@ -258,6 +275,21 @@ function ready(){
 	LMenu_Container.addChild(levelMenu);
 	LMenu_Container.addChild(L1Button);
 	LMenu_Container.addChild(backButton);
+
+	//Level Win Screen initialization
+	levelWinScreen = new PIXI.Sprite(PIXI.loader.resources.levelWin.texture);
+	levelWinScreen.x = 0;
+	levelWinScreen.y = 0;
+
+	goToMenuButton = new PIXI.Sprite(PIXI.loader.resources.backButton.texture);
+	goToMenuButton.x = 600;
+	goToMenuButton.y = 50;
+	goToMenuButton.interactive = true;
+	goToMenuButton.on('click', quitGame);
+
+	LW_Screen_Container.addChild(levelWinScreen);
+	LW_Screen_Container.addChild(goToMenuButton);
+
 	animate();
 }
 
@@ -354,8 +386,11 @@ function animate() {
 		checkCameraBounds();
 		move();
 
+		if (isIntersecting(player, levelExit)){
+			levelWin();
+		}
 		if (player.vy < 0){//Then the player is jumping
-			if (jumpCount > 40){
+			if (jumpCount > 30){
 				player.vy = GRAVITY;
 				jumpCount = 0;
 			}

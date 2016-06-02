@@ -209,11 +209,22 @@ function checkDamage(){
 		for (var i in enemies){
 			enemy = enemies[i];
 			if (isIntersecting(player, enemy)){
-				player.x = player.x - 15;
-				player.y = player.y - 15;
-				var new_x = player.x - 100;
-				var new_y = player.y - 25;
-				createjs.Tween.get(player.position).to({x: new_x, y: new_y}, 100, createjs.Ease.bounceOut);
+
+				//PLAY HIT SOUND
+				if (player.x > enemy.x){
+					player.x = player.x + 15;
+					player.y = player.y - 15;
+					var new_x = player.x + 100;
+					var new_y = player.y - 100;
+					createjs.Tween.get(player.position).to({x: new_x, y: new_y}, 100, createjs.Ease.bounceOut);
+				}
+				if (player.x < enemy.x){
+					player.x = player.x - 15;
+					player.y = player.y - 15;
+					var new_x = player.x - 100;
+					var new_y = player.y - 100;
+					createjs.Tween.get(player.position).to({x: new_x, y: new_y}, 100, createjs.Ease.bounceOut);
+				}
 				if (heartCount == 3){
 					heart3.alpha = 0;
 				}
@@ -273,6 +284,7 @@ checkFalling = function(verticalForce){
 function levelOneInit(e){
 	numBarriers = 39;
 	numPlatforms = 42;
+	numEnemies = 22;
 	PIXI.loader.reset();
 	HUD.removeChild(LMenu_Container);
 	PIXI.loader
@@ -280,7 +292,7 @@ function levelOneInit(e){
 		.add("map_json", "level_one.json")
 		.add("tileset", "tileset1.png")
 		.add("player", "main_character1.png")
-		.add("enemy", "lightbulb.png")
+		.add("spikes", "spikes.png")
 		.add("levelexit", "exitdoor.png")
 		.load(levelOne);
 }
@@ -416,14 +428,6 @@ function levelOne(){
 	for (var j = 1; j <= numEnemies; j++){
 		enemies.push(world.getObject("enemy" + j));
 	}
-
-	//enemy = new PIXI.Sprite(PIXI.loader.resources.enemy.texture);
-	//enemy.x = enemy_object.x;
-	//enemy.y = enemy_object.y;
-	//enemy.width = 50;
-	//enemy.height = 50;
-	//enemy.anchor.x = 0.0;
-	//enemy.anchor.y = 0.0;
 
 	//Level Exit initialization
 	exit_object = world.getObject("levelExit");

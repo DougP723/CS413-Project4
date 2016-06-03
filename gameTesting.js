@@ -1,7 +1,7 @@
 var game_scale = 1;
 var gameport = document.getElementById("gameport");
 
-var renderer = PIXI.autoDetectRenderer(800, 700, {backgroundColor: 0x3344ee});
+var renderer = PIXI.autoDetectRenderer(800, 700, {backgroundColor: 0x000000});
 gameport.appendChild(renderer.view);
 
 var stage = new PIXI.Container();
@@ -40,6 +40,13 @@ var enemy_object;
 var enemies = [];
 var enemy;
 
+//Sound elements
+var music;
+var hitSound;
+var jumpSound;
+var loseTune;
+var winTune;
+
 //Game Over Screen elements
 var gameOverScreen;
 var GO_Screen_Containter = new PIXI.Container();
@@ -61,6 +68,8 @@ var LMenu_Container = new PIXI.Container();
 var levelMenu;
 var gameStart = false;
 var L1Button;
+var L2Button;
+var L3Button;
 
 //HUD elements
 var HUD = new PIXI.Container();
@@ -161,6 +170,7 @@ window.addEventListener("keyup", function (e) {
 
 function jump(){
 	if (player.vy == 0){
+		jumpSound.play();
 		player.vy += JUMP;
 	}
 }	
@@ -170,7 +180,7 @@ function checkCameraBounds(){
 		stage.x += -4;
 		HUD.x += 4;
 	}
-	if (stage.x + player.x < 100){
+	if (stage.x + player.x < 200){
 		stage.x += 4;
 		HUD.x -= 4;
 	}
@@ -210,7 +220,7 @@ function checkDamage(){
 			enemy = enemies[i];
 			if (isIntersecting(player, enemy)){
 
-				//PLAY HIT SOUND
+				hitSound.play();
 				if (player.x > enemy.x){
 					player.x = player.x + 15;
 					player.y = player.y - 15;
@@ -248,6 +258,7 @@ function quitGame(e){
 	HUD.removeChild(GO_Screen_Containter);
 	HUD.removeChild(LW_Screen_Container);
 	HUD.addChild(MMenu_Container);
+	music.play();
 }
 function quitToMenu(e){
 	HUD.removeChild(MMenu_Container);
@@ -259,9 +270,11 @@ function levelSelection(e){
 }
 
 function gameOver(){
+	loseTune.play();
 	HUD.addChild(GO_Screen_Containter);
 }
 function levelWin(){
+	winTune.play();
 	HUD.addChild(LW_Screen_Container);
 }
 checkFalling = function(verticalForce){
@@ -282,6 +295,7 @@ checkFalling = function(verticalForce){
 
 
 function levelOneInit(e){
+	music.stop();
 	numBarriers = 39;
 	numPlatforms = 42;
 	numEnemies = 22;
@@ -297,11 +311,52 @@ function levelOneInit(e){
 		.load(levelOne);
 }
 
+function levelTwoInit(e){
+	music.stop();
+	numBarriers = 14;
+	numPlatforms = 26;
+	numEnemies = 18;
+	PIXI.loader.reset();
+	HUD.removeChild(LMenu_Container);
+	PIXI.loader
+		.add("heart", "heart.png")
+		.add("map_json", "level_two.json")
+		.add("tileset", "tileset1.png")
+		.add("player", "main_character1.png")
+		.add("spikes", "spikes.png")
+		.add("levelexit", "exitdoor.png")
+		.load(levelTwo);
+}
+
+function levelThreeInit(e){
+	music.stop();
+	numBarriers = 25;
+	numPlatforms = 44;
+	numEnemies = 22;
+	PIXI.loader.reset();
+	HUD.removeChild(LMenu_Container);
+	PIXI.loader
+		.add("heart", "heart.png")
+		.add("map_json", "level_three.json")
+		.add("tileset", "tileset1.png")
+		.add("player", "main_character1.png")
+		.add("spikes", "spikes.png")
+		.add("levelexit", "exitdoor.png")
+		.load(levelThree);
+}
+
 PIXI.loader
+	.add("music.mp3")
+	.add("playerHit.mp3")
+	.add("playerJump.mp3")
+	.add("loseMusic.mp3")
+	.add("winMusic.mp3")
 	.add("mainMenu", "mainmenu.png")
 	.add("startButton", "startbutton.png")
 	.add("levelMenu", "levelselectscreen.png")
-	.add("L1_Button", "L1_Button.png")
+	.add("L1_Button", "level1Button.png")
+	.add("L2_Button", "level2Button.png")
+	.add("L3_Button", "level3Button.png")
 	.add("backButton", "backbutton.png")
 	.add("gOScreen", "gameover_screen.png")
 	.add("levelWin", "levelWinScreen.png")
@@ -309,6 +364,14 @@ PIXI.loader
 	.load(ready);
 
 function ready(){
+
+	//Sound Initialization
+	music = PIXI.audioManager.getAudio("music.mp3");
+	music.play();
+	hitSound = PIXI.audioManager.getAudio("playerHit.mp3");
+	jumpSound = PIXI.audioManager.getAudio("playerJump.mp3");
+	loseTune = PIXI.audioManager.getAudio("loseMusic.mp3");
+	winTune = PIXI.audioManager.getAudio("winMusic.mp3");
 
 	for (var i = 1; i <= 26; i++){
 		frames.push(PIXI.Texture.fromFrame("main_character" + i + ".png"))
@@ -329,7 +392,7 @@ function ready(){
 	
 	startButton = new PIXI.Sprite(PIXI.loader.resources.startButton.texture);
 	startButton.x = 300;
-	startButton.y = 500;
+	startButton.y = 350;
 	startButton.alpha = 1;
 	startButton.interactive = true;
 	startButton.on('click', levelSelection);
@@ -357,18 +420,33 @@ function ready(){
 
 	backButton = new PIXI.Sprite(PIXI.loader.resources.backButton.texture);
 	backButton.x = 600;
-	backButton.y = 50;
+	backButton.y = 250;
 	backButton.interactive = true;
 	backButton.on('click', quitToMenu);
 
 	L1Button = new PIXI.Sprite(PIXI.loader.resources.L1_Button.texture);
-	L1Button.x = 100;
-	L1Button.y = 300;
+	L1Button.x = 50;
+	L1Button.y = 200;
 	L1Button.interactive = true;
 	L1Button.on('click', levelOneInit);
 
+	//CHANGE THE BUTTON TEXTURE 
+	L2Button = new PIXI.Sprite(PIXI.loader.resources.L2_Button.texture);
+	L2Button.x = 50;
+	L2Button.y = 350;
+	L2Button.interactive = true;
+	L2Button.on('click', levelTwoInit);
+
+	L3Button = new PIXI.Sprite(PIXI.loader.resources.L3_Button.texture);
+	L3Button.x = 50;
+	L3Button.y = 500;
+	L3Button.interactive = true;
+	L3Button.on('click', levelThreeInit);
+
 	LMenu_Container.addChild(levelMenu);
 	LMenu_Container.addChild(L1Button);
+	LMenu_Container.addChild(L2Button);
+	LMenu_Container.addChild(L3Button);
 	LMenu_Container.addChild(backButton);
 
 	//Level Win Screen initialization
@@ -389,12 +467,175 @@ function ready(){
 }
 
 function levelOne(){
+
 	player.removeChild(standingSprite);
 	//Initialize game parameters
 	heartCount = 3;
 	gO_boolean = false;
 	stage.x = -100;
 	stage.y = -1700;
+	gameStart = true;
+
+	//World initialization
+	let tu = new TileUtilities(PIXI);
+	world = tu.makeTiledWorld("map_json", "tileset1.png");
+	stage.addChild(world);
+
+	//Platform initialization
+	for (var i = 1; i <= numPlatforms; i++){
+		platforms.push(world.getObject("ground" + i));
+	}
+
+	//Barrier initialization
+	for (var k = 1; k <= numBarriers; k++){
+		barriers.push(world.getObject("barrier" + k));
+	}
+
+	//Player initialization
+	hero = world.getObject("hero");
+	standingSprite = new PIXI.Sprite(PIXI.loader.resources.player.texture);
+	player.x = hero.x;
+	player.y = hero.y;
+	player.width = 60;
+	player.height = 116;
+	player.vy = GRAVITY;
+	player.vx = 0;
+	player.addChild(standingSprite);
+
+
+	//Enemy initialization
+	for (var j = 1; j <= numEnemies; j++){
+		enemies.push(world.getObject("enemy" + j));
+	}
+
+	//Level Exit initialization
+	exit_object = world.getObject("levelExit");
+	levelExit = new PIXI.Sprite(PIXI.loader.resources.levelexit.texture);
+	levelExit.x = exit_object.x;
+	levelExit.y = exit_object.y;
+	levelExit.width = 100;
+	levelExit.height = 150;
+	levelExit.anchor.x = 0.0;
+	levelExit.anchor.y = 0.0;
+
+	//HUD initialization
+	heart1 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart1.x = 10;
+	heart1.y = 10;
+	heart1.alpha = 1;
+	HUD.addChild(heart1);
+	heart2 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart2.x = 60;
+	heart2.y = 10;
+	heart2.alpha = 1;
+	HUD.addChild(heart2);
+	heart3 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart3.x = 110;
+	heart3.y = 10;
+	heart3.alpha = 1;
+	HUD.addChild(heart3);
+
+	ground = platforms[0];
+	var entity_layer = world.getObject("player");
+	entity_layer.addChild(levelExit);
+	entity_layer.addChild(walkingSprite);
+	entity_layer.addChild(player);
+	//entity_layer.addChild(enemy);
+
+
+	HUD.x = -stage.x;
+	HUD.y = -stage.y;
+	stage.addChild(HUD);
+}
+
+function levelTwo(){
+	player.removeChild(standingSprite);
+	//Initialize game parameters
+	heartCount = 3;
+	gO_boolean = false;
+	stage.x = -200;
+	stage.y = -200;
+	gameStart = true;
+
+	//World initialization
+	let tu = new TileUtilities(PIXI);
+	world = tu.makeTiledWorld("map_json", "tileset1.png");
+	stage.addChild(world);
+
+	//Platform initialization
+	for (var i = 1; i <= numPlatforms; i++){
+		platforms.push(world.getObject("ground" + i));
+	}
+
+	//Barrier initialization
+	for (var k = 1; k <= numBarriers; k++){
+		barriers.push(world.getObject("barrier" + k));
+	}
+
+	//Player initialization
+	hero = world.getObject("hero");
+	standingSprite = new PIXI.Sprite(PIXI.loader.resources.player.texture);
+	player.x = hero.x;
+	player.y = hero.y;
+	player.width = 60;
+	player.height = 116;
+	player.vy = GRAVITY;
+	player.vx = 0;
+	player.addChild(standingSprite);
+
+
+	//Enemy initialization
+	for (var j = 1; j <= numEnemies; j++){
+		enemies.push(world.getObject("enemy" + j));
+	}
+
+	//Level Exit initialization
+	exit_object = world.getObject("levelExit");
+	levelExit = new PIXI.Sprite(PIXI.loader.resources.levelexit.texture);
+	levelExit.x = exit_object.x;
+	levelExit.y = exit_object.y;
+	levelExit.width = 100;
+	levelExit.height = 150;
+	levelExit.anchor.x = 0.0;
+	levelExit.anchor.y = 0.0;
+
+	//HUD initialization
+	heart1 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart1.x = 10;
+	heart1.y = 10;
+	heart1.alpha = 1;
+	HUD.addChild(heart1);
+	heart2 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart2.x = 60;
+	heart2.y = 10;
+	heart2.alpha = 1;
+	HUD.addChild(heart2);
+	heart3 = new PIXI.Sprite(PIXI.loader.resources.heart.texture);
+	heart3.x = 110;
+	heart3.y = 10;
+	heart3.alpha = 1;
+	HUD.addChild(heart3);
+
+	ground = platforms[0];
+	var entity_layer = world.getObject("player");
+	entity_layer.addChild(levelExit);
+	entity_layer.addChild(walkingSprite);
+	entity_layer.addChild(player);
+	//entity_layer.addChild(enemy);
+
+
+	HUD.x = -stage.x;
+	HUD.y = -stage.y;
+	stage.addChild(HUD);
+}
+
+function levelThree(){
+	player.removeChild(standingSprite);
+	//Initialize game parameters
+	heartCount = 3;
+	gO_boolean = false;
+	stage.x = -200;
+	stage.y = -200;
 	gameStart = true;
 
 	//World initialization
